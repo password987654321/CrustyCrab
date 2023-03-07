@@ -9,6 +9,9 @@ use crabby_patty_formula::*;
 use std::env;
 use std::path::Path;
 
+extern crate directories;
+use directories::UserDirs;
+
 
 
 fn main() {
@@ -70,10 +73,14 @@ fn main() {
                     let mut split_cmd = current_cmd.split(" ");
                     split_cmd.next();
                     let dir = split_cmd.next().unwrap();
-                    if let "~" = &*dir {
-                        // Set directory to home directory.
+                    if dir.eq("~") {
+                        let user = UserDirs::new().unwrap();
+                        if env::set_current_dir(user.home_dir()).is_err() {
+                            // Will set the directory to home if no errors are envoked.
+                            print!("cd: permission denied: {}\n", user.home_dir().to_str().unwrap())
+                        } 
                     }
-                    if Path::new(&dir).exists() {
+                    else if Path::new(&dir).exists() {
                         if env::set_current_dir(&dir).is_err() {
                             // Will set the directory if no errors are envoked.
                             print!("cd: permission denied: {dir}\n")
@@ -84,7 +91,11 @@ fn main() {
                     }
                 }
                 else {
-                    // Do something if there is no operand to "cd" (send to home).
+                    let user = UserDirs::new().unwrap();
+                    if env::set_current_dir(user.home_dir()).is_err() {
+                        // Will set the directory to home if no errors are envoked.
+                        print!("cd: permission denied: {}\n", user.home_dir().to_str().unwrap())
+                    }
                 }
             }
             else if current_cmd.eq("pwd")
